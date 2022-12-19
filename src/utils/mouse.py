@@ -3,6 +3,7 @@ from typing import TypedDict, List, Tuple
 
 import numpy as np
 import pandas as pd
+from shapely import Polygon
 
 
 class MouseDatapoint(TypedDict):
@@ -16,19 +17,13 @@ def area_shoelace(x: np.ndarray, y: np.ndarray) -> float:
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
 
 
-def auc(
-    tracking_data: List[MouseDatapoint], screen_width: int, screen_height: int
-) -> float:
+def auc(tracking_data: List[MouseDatapoint]) -> float:
     """Calculates area under the curve values for mouse tracking data.
 
     Parameters
     ----------
     tracking_data: list of mouse tracking datapoints
         mouse tracking data for a single trial.
-    screen_width: int
-        width of the participant's screen.
-    screen_height: int
-        height of the participant's screen.
 
     Returns
     -------
@@ -36,24 +31,19 @@ def auc(
         Area under the curve.
     """
     tracking_df = pd.DataFrame.from_records(tracking_data)
-    x = np.array(tracking_df.x) / screen_width
-    y = np.array(tracking_df.y) / screen_height
-    return area_shoelace(x, y)
+    x = np.array(tracking_df.x)
+    y = np.array(tracking_df.y)
+    polygon = Polygon(zip(x, y))
+    return polygon.area
 
 
-def max_velocity(
-    tracking_data: List[MouseDatapoint], screen_width: int, screen_height: int
-) -> Tuple[float, int]:
+def max_velocity(tracking_data: List[MouseDatapoint]) -> Tuple[float, int]:
     """Calculates maximum velocity for mouse tracking data.
 
     Parameters
     ----------
     tracking_data: list of mouse tracking datapoints
         mouse tracking data for a single trial.
-    screen_width: int
-        width of the participant's screen.
-    screen_height: int
-        height of the participant's screen.
 
     Returns
     -------
@@ -63,8 +53,8 @@ def max_velocity(
         Time of maximum velocity (in ms).
     """
     tracking_df = pd.DataFrame.from_records(tracking_data)
-    x = tracking_df.x / screen_width
-    y = tracking_df.y / screen_height
+    x = tracking_df.x
+    y = tracking_df.y
     dx = x - x.shift()
     dy = y - y.shift()
     dt = tracking_df.timestamp - tracking_df.timestamp.shift()
@@ -90,4 +80,9 @@ def aggregate_mouse_tracking(experiment_data: pd.DataFrame) -> pd.DataFrame:
     DataFrame
         Extended data frame with mouse aggregated mouse tracking data.
     """
-    pass
+    experiment_data = experiment_data.copy()
+    experiment_data[
+        ["max_velocity", "max_velocity_time"]
+    ] = experiment_data.mouse_tracking_data.map(max_velocity).tolist()
+    experiment_data["auc"] = experiment_data.mouse_tracking_data.map(auc)
+    return experiment_data
