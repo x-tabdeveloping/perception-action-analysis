@@ -99,13 +99,13 @@ with pm.Model(coords=coords) as model:
         "time",
         pop_mu_time,
         pop_sd_time,
-        dims=("trial"),
+        dims=("participant", "trial"),
     )
     strength = pm.Normal(
         "strength",
         pop_mu_strength,
         pop_sd_strength,
-        dims=("trial"),
+        dims=("participant", "trial"),
     )
 
     # ---Effect parameters---
@@ -124,8 +124,8 @@ with pm.Model(coords=coords) as model:
 
     # ---Bezier outcome---
     # Calculating control point
-    t = time[i_trial] + effect_t[nationality] * condition
-    s = strength[i_trial] + effect_s[nationality] * condition
+    t = time[participant_id, i_trial] + effect_t[nationality] * condition
+    s = strength[participant_id, i_trial] + effect_s[nationality] * condition
     # Means for data points
     mu_x = -2 * pm.math.sqr(d) * t + 2 * d * t + pm.math.sqr(d)
     mu_y = -2 * pm.math.sqr(d) * s + 2 * d * s
