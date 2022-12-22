@@ -26,8 +26,13 @@ def docs_to_df(docs: Dict) -> pd.DataFrame:
     for doc_id, doc in docs.items():
         participant = doc["participant"]
         results = doc["results"]
-        for result in results:
-            record = {"doc_id": doc_id, **participant, **result}
+        for i_trial, result in enumerate(results):
+            record = {
+                "doc_id": doc_id,
+                "i_trial": i_trial,
+                **participant,
+                **result,
+            }
             records.append(record)
     return pd.DataFrame.from_records(records)
 
