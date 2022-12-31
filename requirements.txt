@@ -2,3 +2,6 @@ pandas
 firebase-admin
 numpy
 shapely
+arviz
+pymc
+plotly

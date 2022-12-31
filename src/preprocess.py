@@ -23,8 +23,13 @@ def main() -> None:
 
     print("Fetching data")
     data = fetch_experiment_data()
+    data.to_pickle("../dat/data.pkl")
     # Preparing data for mouse tracking analysis
     print("Preparing mouse tracking data...")
+    mouse_data = data
+    print(f"N trials: {len(mouse_data.index)}")
+    mouse_data = mouse_data[mouse_data.chosen == "correct"]
+    print(f"N correct: {len(mouse_data.index)}")
     mouse_data = normalize_mouse_tracking_data(data)
     mouse_data = add_velocity(mouse_data)
     mouse_data = expand_mouse_tracking_data(mouse_data)
